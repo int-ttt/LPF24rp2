@@ -1,8 +1,8 @@
-from math import expm1
-
 import machine, utime, gc
-import math, struct
+import math, struct, binascii
 import utime, _thread
+
+
 
 from machine import Pin, UART
 
@@ -16,6 +16,11 @@ ABSOLUTE,RELATIVE,DISCRETE = 16,8,4
 
 CMD_LLL_SHIFT = 3
 
+mode0 = ['LPF2-DETECT',[1,DATA8,3,0],[0,10],[0,100],[0,10],'',[ABSOLUTE,0],True]
+mode1 = ['LPF2-COUNT',[1,DATA32,4,0],[0,100],[0,100],[0,100],'CNT',[ABSOLUTE,0],True]
+mode2 = ['LPF2-CAL',[3,DATA16,3,0],[0,1023],[0,100],[0,1023],'RAW',[ABSOLUTE,0],False]
+defaultModes = [mode0,mode1,mode2]
+
 def mode(name, size=1, type=DATA8, format='3.0', raw=[0, 100], percent=[0, 100], SI=[0, 100], symbol='',
          functionmap=[ABSOLUTE, 0], view=True):
     fig, dec = format.split('.')
@@ -23,7 +28,7 @@ def mode(name, size=1, type=DATA8, format='3.0', raw=[0, 100], percent=[0, 100],
     return fred
 
 class LPF2(object):
-    def __init__(self, modes: list, id: int = 0, txPin: int = 0, rxPin: int = 1, band: int = 115200, type: int = 65):
+    def __init__(self, modes: list = defaultModes, id: int = 0, txPin: int = 0, rxPin: int = 1, band: int = 115200, type: int = 62):
         self.modes = modes
         self.txPin = txPin
         self.rxPin = rxPin
@@ -35,11 +40,11 @@ class LPF2(object):
         self.current_mode = 0
         self.textBuffer = bytearray(b'                ')
 
-    def readchar(self):
+    def readchar(self) -> str:
         ch_byte = self.ser.read(1)
         char = -1
         try:
-            char = ord(ch_byte.decode('ascii'))
+            char = ord(ch_byte)
         except:
             pass
         return char
@@ -48,14 +53,15 @@ class LPF2(object):
     def loadPayload(self, format, data):
         pass
 
-    def write(self, payload: bytearray | bytes):
-        return self.ser.write(payload)
+    def write(self, array: bytearray | bytes):
+        print(array)
+        return self.ser.write(array)
 
-    def addChksm(self, array: bytearray):
+    def addChksm(self, array):
         chksm = 0
         for b in array:
             chksm ^= b
-        chksm &= 0xFF
+        chksm ^= 0xFF
         array.append(chksm)
         return array
 
@@ -66,20 +72,21 @@ class LPF2(object):
         rate = band.to_bytes(4, "little")
         return self.addChksm(bytearray([0x02]) + rate)
 
-    def defineVers(self, hardware: int, software: int):
-        hardware = hardware.to_bytes(4, "big")
-        software = software.to_bytes(4, "big")
-        return self.addChksm(bytearray([0x07]) + hardware + software)
+    def defineVers(self, hardware, software):
+        hard = hardware.to_bytes(4, 'big')
+        soft = software.to_bytes(4, 'big')
+        return self.addChksm(bytearray([0x5F]) + hard + soft)
 
-    def padString(self, string: str, num: int, startNum: int):
-        reply = bytearray([startNum])
+    def padString(self, string, num, startNum):
+        reply = bytearray([startNum])  # start with name
         reply += string
-        exp = math.ceil(math.log2(len(string))) if len(string) > 0 else 0
+        exp = math.ceil(math.log2(len(string))) if len(string) > 0 else 0  # find the next power of 2
         size = 2 ** exp
-        length = size - len(reply)
+        exp = exp << 3
+        length = size - len(string)
         for i in range(length):
             reply += bytearray([0])
-        return self.addChksm(bytearray(0x80 | exp | num) + reply)
+        return self.addChksm(bytearray([0x80 | exp | num]) + reply)
 
     def buildFuncMap(self, mode: list, num: int, type: int):
         exp = 1 << CMD_LLL_SHIFT
@@ -101,12 +108,13 @@ class LPF2(object):
         maxVal = struct.pack('<f', settings[1])
         return self.addChksm(bytearray([0x80 | exp | num, rangeType]) + minVal + maxVal)
 
-    def defineModes(self, modes: list):
+    def defineModes(self, modes):
         length = (len(modes) - 1) & 0xFF
+        print(length)
         views = 0
         for i in modes:
-            if i[7]:
-                views += 1
+            if (i[7]):
+                views = views + 1
         views = (views - 1) & 0xFF
         return self.addChksm(bytearray([0x49, length, views]))
 
@@ -118,20 +126,21 @@ class LPF2(object):
             utime.sleep_us(5)
             currentTime = utime.time()
             if self.ser.any() > 0:
-                data = self.ser.read(0)
-                if data[0] == ord(char):
+                data = self.readchar()
+                print(data, char)
+                if data == ord(char):
                     status = True
                     break
         return status
 
-    def setupMode(self, mode: list, num: int):
-        self.write(self.padString(mode[0], num, 0x00))
-        self.write(self.buildRange(mode[2], num, 0x01))
-        self.write(self.buildRange(mode[3], num, 0x02))
-        self.write(self.buildRange(mode[4], num, 0x03))
-        self.write(self.padString(mode[5], num, 0x04))
-        self.write(self.buildFuncMap(mode[6], num, 0x05))
-        self.write(self.buildRange(mode[1], num, 0x80))
+    def setupMode(self, mode, num):
+        self.write(self.padString(mode[0], num, NAME))  # write name
+        self.write(self.buildRange(mode[2], num, RAW))  # write RAW range
+        self.write(self.buildRange(mode[3], num, Pct))  # write Percent range
+        self.write(self.buildRange(mode[4], num, SI))  # write SI range
+        self.write(self.padString(mode[5], num, SYM))  # write symbol
+        self.write(self.buildFuncMap(mode[6], num, FCT))  # write Function Map
+        self.write(self.buildFormat(mode[1], num, FMT))  # write format
 
     def hubCallBack(self):
         while True:
@@ -153,10 +162,10 @@ class LPF2(object):
                         b9 = self.readchar()
                         ck = 0xff ^ zero ^ b9
                         if (zero == 0) & (b9 == 0):
-                            char = self.readchar()
-                            size = 2 ** ((char & 0b111000)>>3)
-                            mode = char & 0b111
-                            ck = ck ^ char
+                            chr = self.readchar()
+                            size = 2 ** ((chr & 0b111000)>>3)
+                            mode = chr & 0b111
+                            ck = ck ^ chr
                             for i in range(len(self.textBuffer)):
                                 self.textBuffer[i] = ord(b' ')
                             for i in range(size):
@@ -165,7 +174,7 @@ class LPF2(object):
                             cksm = self.readchar()
                             if cksm == ck:
                                 pass
-                    elif char == 0x4C:
+                    elif chr == 0x4C:
                         thing = self.readchar()
                         cksm = self.readchar()
                         if cksm == 0xff ^ 0x4C ^ thing:
@@ -176,7 +185,8 @@ class LPF2(object):
             size = self.write(self.payload)
             if not size:
                 self.connected = False
-                # _thread.exit()
+            if not self.connected:
+                _thread.exit()
 
     def init(self):
         self.connected = False
@@ -188,7 +198,7 @@ class LPF2(object):
         self.write(b'\x00')
         self.write(self.setType(self.type))
         self.write(self.defineModes(self.modes))
-        self.write(self.defineBand(self.band))
+        self.write(self.defineBand(115200))
         self.write(self.defineVers(2, 2))
         num = len(self.modes) - 1
         for mode in reversed(self.modes):
@@ -211,3 +221,24 @@ class LPF2(object):
             self.loadPayload("uInt8", 0)
             _thread.start_new_thread(self.hubCallBack, ())
 
+#>>> b'\x00'
+# bytearray(b'@>\x81')
+# bytearray(b'I\x01\x01\xb6')
+# bytearray(b'R\x00\xc2\x01\x00n')
+# bytearray(b'_\x00\x00\x00\x02\x00\x00\x00\x02\xa0')
+# bytearray(b'\x91\x00TEMPb')
+# bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed')
+# bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x81\x04\x00z')
+# bytearray(b'\x89\x05\x10\x00c')
+# bytearray(b'\x91\x80\x04\x00\x03\x00\xe9')
+# bytearray(b'\x90\x00TOF\x002')
+# bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec')
+# bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x80\x04\x00{')
+# bytearray(b'\x88\x05\x10\x00b')
+# bytearray(b'\x90\x80\x04\x01\x03\x00\xe9')
+# b'\x04'
+# Success

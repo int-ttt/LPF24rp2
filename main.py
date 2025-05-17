@@ -6,7 +6,8 @@ import micropython
 led = Pin("LED", Pin.OUT)
 
 modes = [
-    LPF2.mode("int8", type=LPF2.DATA8)
+     LPF2.mode("int8", type=LPF2.DATA8),
+     LPF2.mode("int8", type=LPF2.DATA8)
 ]
 led.on()
 utime.sleep(5)
@@ -14,7 +15,7 @@ led.off()
 
 print(modes)
 
-lpf2 = LPF2.LPF2(modes)
+lpf2 = LPF2.LPF2()
 lpf2.init()
 
 value = 0
