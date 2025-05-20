@@ -1,10 +1,10 @@
 import machine, utime, gc
 import math, struct, binascii
 import utime, _thread
+from machine import Pin
+from lego.SoftwareUART import UART
 
-
-
-from machine import Pin, UART
+# from lego.SoftwareUART import UART
 
 length = {'Int8' : 1, 'uInt8' : 1, 'Int16' : 2, 'uInt16' : 2, 'Int32' : 4, 'uInt32' : 4, 'float' : 4}
 format = {'Int8' : '<b', 'uInt8' : '<B', 'Int16' : '<h', 'uInt16' : '<H',
@@ -28,26 +28,31 @@ def mode(name, size=1, type=DATA8, format='3.0', raw=[0, 100], percent=[0, 100],
     return fred
 
 class LPF2(object):
-    def __init__(self, modes: list = defaultModes, id: int = 0, txPin: int = 0, rxPin: int = 1, band: int = 115200, type: int = 62):
+    def __init__(self, modes: list = defaultModes, id = 1, txPin: int = 6, rxPin: int = 5, baud: int = 115200, type: int = 61):
         self.modes = modes
         self.txPin = txPin
         self.rxPin = rxPin
-        self.band = band
+        self.band = baud
         self.type = type
-        self.ser = UART(id, band, tx=Pin(txPin), rx=Pin(rxPin))
+        self.ser = UART(id, tx= Pin(self.txPin, Pin.OUT, value=1), rx=Pin(self.rxPin, Pin.IN, Pin.PULL_UP))
         self.connected = False
         self.payload = bytearray([])
         self.current_mode = 0
         self.textBuffer = bytearray(b'                ')
 
-    def readchar(self) -> str:
-        ch_byte = self.ser.read(1)
-        char = -1
-        try:
-            char = ord(ch_byte)
-        except:
-            pass
-        return char
+    def readchar(self):
+        if self.ser.any():
+            c = self.ser.read(1)
+        else:  # Try again once
+            utime.sleep_ms(1)
+            if self.ser.any():
+                c = self.ser.read(1)
+            else:
+                return -1
+        print(c)
+        if c == None:
+            return -1
+        return ord(c)
 
     # ---- data send ----
     def loadPayload(self, format, data):
@@ -68,9 +73,9 @@ class LPF2(object):
     def setType(self, sensorType: int):
         return self.addChksm(bytearray([0x40, sensorType]))
 
-    def defineBand(self, band: int):
-        rate = band.to_bytes(4, "little")
-        return self.addChksm(bytearray([0x02]) + rate)
+    def defineBaud(self, baud):
+        rate = baud.to_bytes(4, 'little')
+        return self.addChksm(bytearray([0x52]) + rate)
 
     def defineVers(self, hardware, software):
         hard = hardware.to_bytes(4, 'big')
@@ -94,13 +99,13 @@ class LPF2(object):
         mapOut = mode[1]
         return self.addChksm(bytearray([0x80 | exp | num, type, mapType, mapOut]))
 
-    def buildFormat(self, mode: list, num: int , type: int):
+    def buildFormat(self, mode, num, Type):
         exp = 2 << CMD_LLL_SHIFT
         sampleSize = mode[0] & 0xFF
         dataType = mode[1] & 0xFF
         figures = mode[2] & 0xFF
         decimals = mode[3] & 0xFF
-        return self.addChksm(bytearray([0x01 | exp | num, type, sampleSize, dataType, figures, decimals]))
+        return self.addChksm(bytearray([0x80 | exp | num, Type, sampleSize, dataType, figures, decimals]))
 
     def buildRange(self, settings, num, rangeType):
         exp = 3 << CMD_LLL_SHIFT
@@ -110,7 +115,6 @@ class LPF2(object):
 
     def defineModes(self, modes):
         length = (len(modes) - 1) & 0xFF
-        print(length)
         views = 0
         for i in modes:
             if (i[7]):
@@ -127,7 +131,6 @@ class LPF2(object):
             currentTime = utime.time()
             if self.ser.any() > 0:
                 data = self.readchar()
-                print(data, char)
                 if data == ord(char):
                     status = True
                     break
@@ -147,6 +150,7 @@ class LPF2(object):
             utime.sleep_ms(10)
             if self.connected:
                 chr = self.readchar()
+                print("asdfasdf", chr)
                 while chr >= 0:
                     if chr == 0:
                         pass
@@ -186,38 +190,36 @@ class LPF2(object):
             if not size:
                 self.connected = False
             if not self.connected:
+                print('disconnected')
                 _thread.exit()
+            print('asdfasdfasfdsa')
 
     def init(self):
         self.connected = False
-        tx = Pin(self.txPin)
-        tx.value(0)
-        utime.sleep_ms(500)
-        tx.value(1)
-        self.ser.init(2400)
+        self.ser.init(baudrate=2400, bits=8, parity=None, stop=1)
         self.write(b'\x00')
-        self.write(self.setType(self.type))
+        self.write(self.setType(35))
         self.write(self.defineModes(self.modes))
-        self.write(self.defineBand(115200))
+        self.write(self.defineBaud(115200))
         self.write(self.defineVers(2, 2))
         num = len(self.modes) - 1
         for mode in reversed(self.modes):
             self.setupMode(mode, num)
-            num -=1
+            num -= 1
             utime.sleep_ms(5)
 
         self.write(b'\x04')
 
         self.connected = self.waitFor(b'\x04')
         # self.connected = True
-
+        print(self.connected)
         self.ser.deinit()
         if self.connected:
             tx = Pin(self.txPin)
             tx.value(0)
             utime.sleep_ms(10)
 
-            self.ser.init(self.band)
+            self.ser.init(baudrate=115200, bits=8, parity=None, stop=1)
             self.loadPayload("uInt8", 0)
             _thread.start_new_thread(self.hubCallBack, ())
 

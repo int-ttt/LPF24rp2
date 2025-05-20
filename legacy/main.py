@@ -193,3 +193,190 @@ while True:
      print(value)
 
      utime.sleep_ms(200)
+
+
+[
+#
+#
+# def readchar():
+#      if uart.any():
+#           c = uart.read(1)
+#      else:  # Try again once
+#           utime.sleep_ms(1)
+#           if uart.any():
+#                c = uart.read(1)
+#           else:
+#                return -1
+#      print(c)
+#      if c == None:
+#           return -1
+#      return ord(c)
+#
+#
+# while True:
+#      tx = Pin(0, Pin.OUT)
+#      tx.value(1)
+#      utime.sleep_ms(500)
+#      tx.value(0)
+#      uart.init(baudrate=2400, bits=8, parity=None, stop=1)
+     # uart.write(b'\x00')
+     # uart.write(bytearray(b'@>\x81'))
+     # uart.write(bytearray(b'I\x01\x01\xb6'))
+     # uart.write(bytearray(b'R\x00\xc2\x01\x00n'))
+     # uart.write(bytearray(b'_\x00\x00\x00\x02\x00\x00\x00\x02\xa0'))
+     # uart.write(bytearray(b'\x91\x00TEMPb'))
+     # uart.write(bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed'))
+     # uart.write(bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+     # uart.write(bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+     # uart.write(bytearray(b'\x81\x04\x00z'))
+     # uart.write(bytearray(b'\x89\x05\x10\x00c'))
+     # uart.write(bytearray(b'\x91\x80\x04\x00\x03\x00\xe9'))
+     # uart.write(bytearray(b'\x90\x00TOF\x002'))
+     # uart.write(bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec'))
+     # uart.write(bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+     # uart.write(bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+     # uart.write(bytearray(b'\x80\x04\x00{'))
+     # uart.write(bytearray(b'\x88\x05\x10\x00b'))
+     # uart.write(bytearray(b'\x90\x80\x04\x01\x03\x00\xe9'))
+     # uart.write(b'\x04')
+     # uart.write(b'\x00')
+     # uart.write(bytearray(b'\x40\x25\x9a'))
+     # uart.write(bytearray(b'\x51\x07\x07\x0a\x07\xa3'))
+     # uart.write(bytearray(b'\x52\x00\xc2\x01\x00\x6e'))
+     # uart.write(bytearray(b'\x43\x02\xbe'))
+     # uart.write(bytearray(b'\x91\x00TEMPb'))
+     # uart.write(bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed'))
+     # uart.write(bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+     # uart.write(bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+     # uart.write(bytearray(b'\x81\x04\x00z'))
+     # uart.write(bytearray(b'\x89\x05\x10\x00c'))
+     # uart.write(bytearray(b'\x91\x80\x04\x00\x03\x00\xe9'))
+     # uart.write(bytearray(b'\x90\x00TOF\x002'))
+     # uart.write(bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec'))
+     # uart.write(bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+     # uart.write(bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+     # uart.write(bytearray(b'\x80\x04\x00{'))
+     # uart.write(bytearray(b'\x88\x05\x10\x00b'))
+     # uart.write(bytearray(b'\x90\x80\x04\x01\x03\x00\xe9'))
+     # uart.write(b'\x04')
+     # print(uart.read(1))
+
+#>>> b'\x00'
+# bytearray(b'@>\x81')
+# bytearray(b'I\x01\x01\xb6')
+# bytearray(b'R\x00\xc2\x01\x00n')
+# bytearray(b'_\x00\x00\x00\x02\x00\x00\x00\x02\xa0')
+# bytearray(b'\x91\x00TEMPb')
+# bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed')
+# bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x81\x04\x00z')
+# bytearray(b'\x89\x05\x10\x00c')
+# bytearray(b'\x91\x80\x04\x00\x03\x00\xe9')
+# bytearray(b'\x90\x00TOF\x002')
+# bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec')
+# bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x80\x04\x00{')
+# bytearray(b'\x88\x05\x10\x00b')
+# bytearray(b'\x90\x80\x04\x01\x03\x00\xe9')
+# b'\x04'
+# Success
+]# def readchar():
+#      if uart.any():
+#           c = uart.read(1)
+#      else:  # Try again once
+#           utime.sleep_ms(1)
+#           if uart.any():
+#                c = uart.read(1)
+#           else:
+#                return -1
+#      print(c)
+#      if c == None:
+#           return -1
+#      return ord(c)
+#
+
+# uart = UART(1, tx = Pin(8), rx = Pin(9))
+
+# while True:
+#      tx = Pin(0, Pin.OUT)
+#      tx.value(1)
+#      utime.sleep_ms(500)
+#      tx.value(0)
+#      uart.init(baudrate=2400, bits=8, parity=None, stop=1)
+#      uart.write(b'\x00')
+#      uart.write(bytearray(b'@>\x81'))
+#      uart.write(bytearray(b'I\x01\x01\xb6'))
+#      uart.write(bytearray(b'R\x00\xc2\x01\x00n'))
+#      # uart.write(bytearray(b'_\x00\x00\x00\x02\x00\x00\x00\x02\xa0'))
+#      # uart.write(bytearray(b'\x91\x00TEMPb'))
+#      # uart.write(bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed'))
+#      # uart.write(bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+#      # uart.write(bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+#      # uart.write(bytearray(b'\x81\x04\x00z'))
+#      # uart.write(bytearray(b'\x89\x05\x10\x00c'))
+#      # uart.write(bytearray(b'\x91\x80\x04\x00\x03\x00\xe9'))
+#      # uart.write(bytearray(b'\x90\x00TOF\x002'))
+#      # uart.write(bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec'))
+#      # uart.write(bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+#      # uart.write(bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+#      # uart.write(bytearray(b'\x80\x04\x00{'))
+#      # uart.write(bytearray(b'\x88\x05\x10\x00b'))
+#      # uart.write(bytearray(b'\x90\x80\x04\x01\x03\x00\xe9'))
+#      # uart.write(b'\x04')
+#      # uart.write(b'\x00')
+#      # uart.write(bytearray(b'\x40\x25\x9a'))
+#      # uart.write(bytearray(b'\x51\x07\x07\x0a\x07\xa3'))
+#      # uart.write(bytearray(b'\x52\x00\xc2\x01\x00\x6e'))
+#      # uart.write(bytearray(b'\x43\x02\xbe'))
+#      # uart.write(bytearray(b'\x91\x00TEMPb'))
+#      # uart.write(bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed'))
+#      # uart.write(bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+#      # uart.write(bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+#      # uart.write(bytearray(b'\x81\x04\x00z'))
+#      # uart.write(bytearray(b'\x89\x05\x10\x00c'))
+#      # uart.write(bytearray(b'\x91\x80\x04\x00\x03\x00\xe9'))
+#      # uart.write(bytearray(b'\x90\x00TOF\x002'))
+#      # uart.write(bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec'))
+#      # uart.write(bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef'))
+#      # uart.write(bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee'))
+#      # uart.write(bytearray(b'\x80\x04\x00{'))
+#      # uart.write(bytearray(b'\x88\x05\x10\x00b'))
+#      # uart.write(bytearray(b'\x90\x80\x04\x01\x03\x00\xe9'))
+#      # uart.write(b'\x04')
+#      print(uart.read(1))
+#      print(uart.read(3))
+#      print(uart.read(4))
+#      print(uart.read(6))
+
+#>>> b'\x00'
+# bytearray(b'@>\x81')
+# bytearray(b'I\x01\x01\xb6')
+# bytearray(b'R\x00\xc2\x01\x00n')
+# bytearray(b'_\x00\x00\x00\x02\x00\x00\x00\x02\xa0')
+# bytearray(b'\x91\x00TEMPb')
+# bytearray(b'\x99\x01\x00\x00\x00\x00\x00\x00\xc8B\xed')
+# bytearray(b'\x99\x02\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x99\x03\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x81\x04\x00z')
+# bytearray(b'\x89\x05\x10\x00c')
+# bytearray(b'\x91\x80\x04\x00\x03\x00\xe9')
+# bytearray(b'\x90\x00TOF\x002')
+# bytearray(b'\x98\x01\x00\x00\x00\x00\x00\x00\xc8B\xec')
+# bytearray(b'\x98\x02\x00\x00\x00\x00\x00\x00\xc8B\xef')
+# bytearray(b'\x98\x03\x00\x00\x00\x00\x00\x00\xc8B\xee')
+# bytearray(b'\x80\x04\x00{')
+# bytearray(b'\x88\x05\x10\x00b')
+# bytearray(b'\x90\x80\x04\x01\x03\x00\xe9')
+# b'\x04'
+# Success
+
+# uart = UART(0, 9600)
+# uar1 = UART(1, 9600, timeout=2, tx=Pin(4), rx=Pin(5))
+#
+# while True:
+#      uart.write(b'a')
+#      uart.flush()
+#      utime.sleep_ms(1000)
+#      print(uar1.any(), uar1.read(1))
